@@ -37,7 +37,9 @@ _enddtm = pytz.utc.localize(datetime.strptime(args.end, '%Y-%m-%d %H:%M:%S'))
 _logname = args.logname 
 _region = os.environ.get('OCI_REGION')
 
-
+"""
+Identify and enumerate archive log objects
+"""
 def findArchiveLogObjects(_object_storage_client, _namespace):
     try:
         get_bucket_response = _object_storage_client.get_bucket(
@@ -62,7 +64,9 @@ def findArchiveLogObjects(_object_storage_client, _namespace):
     except Exception as err:
         print("An exception occured in findArchiveLogObjects()")
         raise(err)
-
+"""
+Verify exists, or create if needed, Log Group and return OCID
+"""
 def prepLogGroup(_logging_client):
     try:
         list_log_groups_response = _logging_client.list_log_groups(
@@ -89,6 +93,9 @@ def prepLogGroup(_logging_client):
         print("An exception occured in prepLogGroup()")
         raise(err)
 
+"""
+Verify exists, or create if needed, and return OCID
+"""
 def prepRestoreLog(_logging_client, _logGrpOCID, _logname):
     try:
         list_logs_response = _logging_client.list_logs(
@@ -116,6 +123,9 @@ def prepRestoreLog(_logging_client, _logGrpOCID, _logname):
         print("An exception occured in prepRestoreLog()")
         raise(err)
 
+"""
+Restore archive logs to Logging service
+"""
 def restoreLogs(_object_storage_client,  _namespace, _bucket, _loggingingestion_client, _logOCID, archive_log_list, _folder):
     try:
         if not(os.path.exists(_folder)):
@@ -146,7 +156,7 @@ def restoreLogs(_object_storage_client,  _namespace, _bucket, _loggingingestion_
             for i in range(length_of_list):
                 log_entry_json = json.loads(log_entries_str[i])
                 log_entry = {
-                    "data" : (json.dumps(log_entry_json['data'])).replace("{","").replace("}","").replace(":","->").replace('"',""),
+                    "data" : (json.dumps(log_entry_json['data'])).replace("{","").replace("}","").replace("\\","").replace('"',""),
                     "id" : log_entry_json['id'],
                     "time" : log_entry_json['time']
                 }
@@ -179,6 +189,9 @@ def restoreLogs(_object_storage_client,  _namespace, _bucket, _loggingingestion_
         print("There was an exception in executing restoreLogs()") 
         raise(err) 
 
+"""
+Main process
+"""
 def main():
     try:
         config = oci.config.from_file()
@@ -208,7 +221,9 @@ def main():
         print("There was a problem with executing this restore process.  Error message:")
         print(err)
 
-
+"""
+Script entrypoint
+"""
 main()
 
 
